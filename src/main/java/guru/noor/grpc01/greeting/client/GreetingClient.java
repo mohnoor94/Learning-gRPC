@@ -33,7 +33,7 @@ public class GreetingClient {
 
         GreetResponse greetResponse = greetClient.greet(greetRequest);
 
-        System.out.println(greetResponse.getResult() );
+        System.out.println(greetResponse.getResult());
 
         System.out.println("Shutting down channel");
         channel.shutdown();
