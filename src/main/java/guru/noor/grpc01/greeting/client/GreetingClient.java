@@ -1,11 +1,10 @@
 package guru.noor.grpc01.greeting.client;
 
-import com.proto.greet.GreetRequest;
-import com.proto.greet.GreetResponse;
-import com.proto.greet.GreetServiceGrpc;
-import com.proto.greet.Greeting;
+import com.proto.greet.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+
+import java.util.Iterator;
 
 public class GreetingClient {
 
@@ -27,6 +26,8 @@ public class GreetingClient {
                 .setLastName("AlAhmad")
                 .build();
 
+        // Unary
+        /*
         GreetRequest greetRequest = GreetRequest.newBuilder()
                 .setGreeting(greeting)
                 .build();
@@ -34,6 +35,12 @@ public class GreetingClient {
         GreetResponse greetResponse = greetClient.greet(greetRequest);
 
         System.out.println(greetResponse.getResult());
+         */
+
+        GreetManyTimesRequest greetManyTimesRequest = GreetManyTimesRequest.newBuilder().setGreeting(greeting).build();
+        Iterator<GreetManyTimesResponse> greetManyTimesResponseIterator = greetClient.greetManyTimes(greetManyTimesRequest);
+
+        greetManyTimesResponseIterator.forEachRemaining(response -> System.out.println(response.getResult()));
 
         System.out.println("Shutting down channel");
         channel.shutdown();
