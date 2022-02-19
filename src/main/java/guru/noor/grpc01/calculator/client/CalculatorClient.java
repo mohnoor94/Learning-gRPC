@@ -1,8 +1,6 @@
 package guru.noor.grpc01.calculator.client;
 
-import com.proto.calculator.CalculatorServiceGrpc;
-import com.proto.calculator.SumRequest;
-import com.proto.calculator.SumResponse;
+import com.proto.calculator.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
@@ -23,5 +21,12 @@ public class CalculatorClient {
         SumResponse response = stub.sum(sumRequest);
 
         System.out.println("Sum is: " + response.getResult());
+
+        // Streaming Server
+        stub.primeNumberDecomposition(
+                PrimeNumberDecompositionRequest.newBuilder().setNumber(567890000).build()
+        ).forEachRemaining(r -> System.out.println(r.getPrimeFactor()));
+
+        channel.shutdown();
     }
 }

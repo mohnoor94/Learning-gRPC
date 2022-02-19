@@ -1,9 +1,7 @@
 package guru.noor.grpc01.calculator.server;
 
-import com.proto.calculator.CalculatorServiceGrpc;
+import com.proto.calculator.*;
 
-import com.proto.calculator.SumRequest;
-import com.proto.calculator.SumResponse;
 import io.grpc.stub.StreamObserver;
 
 public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServiceImplBase {
@@ -15,6 +13,19 @@ public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServi
                 .build();
 
         responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    public void primeNumberDecomposition(PrimeNumberDecompositionRequest request, StreamObserver<PrimeNumberDecompositionResponse> responseObserver) {
+        int divisor = 2;
+        int number = request.getNumber();
+        while (number > 1) {
+            if (number % divisor == 0) {
+                responseObserver.onNext(PrimeNumberDecompositionResponse.newBuilder().setPrimeFactor(divisor).build());
+                number /= divisor;
+            } else ++divisor;
+        }
         responseObserver.onCompleted();
     }
 }
