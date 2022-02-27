@@ -5,6 +5,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 public class CalculatorClient {
@@ -17,12 +18,13 @@ public class CalculatorClient {
 
         //doUnaryCall(channel);
         //doStreamingServerCall(channel);
-        doStreamingClientCall(channel);
+        //doStreamingClientCall(channel);
+        doBiDiStreamingCal(channel);
 
         channel.shutdown();
     }
 
-    private static void doUnaryCall(ManagedChannel channel){
+    private static void doUnaryCall(ManagedChannel channel) {
         CalculatorServiceGrpc.CalculatorServiceBlockingStub stub = CalculatorServiceGrpc.newBlockingStub(channel);
 
         SumRequest sumRequest = SumRequest.newBuilder()
@@ -56,7 +58,8 @@ public class CalculatorClient {
             }
 
             @Override
-            public void onError(Throwable t) {}
+            public void onError(Throwable t) {
+            }
 
             @Override
             public void onCompleted() {
@@ -77,6 +80,46 @@ public class CalculatorClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
     }
+
+    private static void doBiDiStreamingCal(ManagedChannel channel) {
+        CalculatorServiceGrpc.CalculatorServiceStub asyncClient = CalculatorServiceGrpc.newStub(channel);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        StreamObserver<FindMaximumRequest> requestObserver = asyncClient.findMaximum(new StreamObserver<FindMaximumResponse>() {
+            @Override
+            public void onNext(FindMaximumResponse value) {
+                System.out.println("Response from Sever:: " + value.getMax());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Server is DONE!!!");
+                latch.countDown();
+            }
+        });
+
+        Arrays.asList(1, 5, 3, 6, 2, 20, 9, 5, 7, 300, 10, 500).forEach(number -> {
+            System.out.println("Sending:: " + number);
+            requestObserver.onNext(FindMaximumRequest.newBuilder().setNumber(number).build());
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
+
+        requestObserver.onCompleted();
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
