@@ -5,7 +5,9 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 public class GreetingClient {
@@ -26,7 +28,8 @@ public class GreetingClient {
 
         //doUnaryCall(channel);
         //doServerStreamingCall(channel);
-        doClientStreamingCall(channel);
+        //doClientStreamingCall(channel);
+        doBiDiStreamingCall(channel);
 
         System.out.println("Shutting down channel");
         channel.shutdown();
@@ -77,7 +80,8 @@ public class GreetingClient {
             }
 
             @Override
-            public void onError(Throwable t) {}
+            public void onError(Throwable t) {
+            }
 
             @Override
             public void onCompleted() {
@@ -106,6 +110,50 @@ public class GreetingClient {
 
         requestObserver.onCompleted();
 
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void doBiDiStreamingCall(ManagedChannel channel) {
+        GreetServiceGrpc.GreetServiceStub asyncClient = GreetServiceGrpc.newStub(channel);
+        CountDownLatch latch = new CountDownLatch(1);
+
+        StreamObserver<GreetEveryoneRequest> requestObserver = asyncClient.greetEveryone(new StreamObserver<>() {
+
+            @Override
+            public void onNext(GreetEveryoneResponse value) {
+                System.out.println("Response from server:: " + value.getResult());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onCompleted() {
+                System.out.println("Server is DONE!!");
+                latch.countDown();
+            }
+        });
+
+        List<String> names = Arrays.asList("Noor", "Nat", "Aseel");
+        names.forEach(name -> {
+            System.out.println("Sending:: " + name);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            requestObserver.onNext(GreetEveryoneRequest.newBuilder().setGreeting(
+                    Greeting.newBuilder().setFirstName(name).build()).build()
+            );
+        });
+
+        requestObserver.onCompleted();
         try {
             latch.await();
         } catch (InterruptedException e) {
