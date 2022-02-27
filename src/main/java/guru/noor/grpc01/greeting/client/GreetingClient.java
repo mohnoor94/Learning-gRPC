@@ -1,14 +1,14 @@
 package guru.noor.grpc01.greeting.client;
 
 import com.proto.greet.*;
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.*;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class GreetingClient {
 
@@ -29,7 +29,9 @@ public class GreetingClient {
         //doUnaryCall(channel);
         //doServerStreamingCall(channel);
         //doClientStreamingCall(channel);
-        doBiDiStreamingCall(channel);
+        //doBiDiStreamingCall(channel);
+
+        doUnaryCallWithDeadline(channel);
 
         System.out.println("Shutting down channel");
         channel.shutdown();
@@ -158,6 +160,31 @@ public class GreetingClient {
             latch.await();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void doUnaryCallWithDeadline(ManagedChannel channel) {
+        GreetServiceGrpc.GreetServiceBlockingStub blockingStub = GreetServiceGrpc.newBlockingStub(channel);
+
+        doOneCallWithDeadline(blockingStub, 3000); // First call: 3000 ms deadline - will succeed
+        doOneCallWithDeadline(blockingStub, 250); // First call: 100 ms deadline - will fail
+    }
+
+    private void doOneCallWithDeadline(GreetServiceGrpc.GreetServiceBlockingStub blockingStub, int deadline) {
+        try {
+            System.out.println("Sending a request with a deadline of " + deadline + "ms.");
+            GreetWithDeadlineResponse response = blockingStub.withDeadline(Deadline.after(deadline, TimeUnit.MILLISECONDS)).greetWithDeadline(
+                    GreetWithDeadlineRequest.newBuilder().setGreeting(
+                            Greeting.newBuilder().setFirstName("Noor").build()
+                    ).build()
+            );
+            System.out.println("Result:: " + response.getResult());
+        } catch (StatusRuntimeException e) {
+            if (e.getStatus() == Status.DEADLINE_EXCEEDED) {
+                System.out.println("Deadline exceeded!");
+            } else {
+                e.printStackTrace();
+            }
         }
     }
 }
