@@ -2,6 +2,7 @@ package guru.noor.grpc01.calculator.server;
 
 import com.proto.calculator.*;
 
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
@@ -88,5 +89,23 @@ public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServi
                 responseObserver.onCompleted();
             }
         };
+    }
+
+    @Override
+    public void squareRoot(SquareRootRequest request, StreamObserver<SquareRootResponse> responseObserver) {
+        int number = request.getNumber();
+
+        if (number < 0) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription("Negative Number")
+                            .augmentDescription("Number sent: " + number)
+                            .asRuntimeException()
+            );
+            return;
+        }
+
+        responseObserver.onNext(SquareRootResponse.newBuilder().setRoot(Math.sqrt(number)).build());
+        responseObserver.onCompleted();
     }
 }

@@ -19,7 +19,9 @@ public class CalculatorClient {
         //doUnaryCall(channel);
         //doStreamingServerCall(channel);
         //doStreamingClientCall(channel);
-        doBiDiStreamingCal(channel);
+        //doBiDiStreamingCal(channel);
+
+        doErrorCall(channel);
 
         channel.shutdown();
     }
@@ -122,4 +124,15 @@ public class CalculatorClient {
         }
     }
 
+    private static void doErrorCall(ManagedChannel channel) {
+        CalculatorServiceGrpc.CalculatorServiceBlockingStub blockingStub = CalculatorServiceGrpc.newBlockingStub(channel);
+
+        try {
+            SquareRootResponse squareRootResponse = blockingStub.squareRoot(SquareRootRequest.newBuilder().setNumber(-10).build());
+            System.out.println(squareRootResponse.getRoot());
+        } catch (RuntimeException ex) {
+            System.out.println("ERROR!!");
+            ex.printStackTrace();
+        }
+    }
 }
