@@ -2,8 +2,12 @@ package guru.noor.grpc01.greeting.client;
 
 import com.proto.greet.*;
 import io.grpc.*;
+import io.grpc.netty.shaded.io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.StreamObserver;
 
+import javax.net.ssl.SSLException;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -12,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 public class GreetingClient {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws SSLException {
         // System.out.println("Creating Stub");
         // DummyServiceGrpc.DummyServiceBlockingStub syncClient = DummyServiceGrpc.newBlockingStub(channel);
         // DummyServiceGrpc.DummyServiceFutureStub asyncClient = DummyServiceGrpc.newFutureStub(channel);
@@ -21,9 +25,15 @@ public class GreetingClient {
         new GreetingClient().run();
     }
 
-    public void run() {
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
-                .usePlaintext() // don't do this in production - disabling SSL.
+    public void run() throws SSLException {
+        // Unsafe channel
+//        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
+//                .usePlaintext() // don't do this in production - disabling SSL.
+//                .build();
+
+        // Safe channel
+        ManagedChannel channel = NettyChannelBuilder.forAddress("localhost", 50051)
+                .sslContext(GrpcSslContexts.forClient().trustManager(new File("ssl/ca.crt")).build())
                 .build();
 
         //doUnaryCall(channel);

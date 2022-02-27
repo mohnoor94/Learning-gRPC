@@ -15,9 +15,11 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 
-    runtimeOnly 'io.grpc:grpc-netty-shaded:1.44.1'
+    implementation 'io.grpc:grpc-netty-shaded:1.44.1'
     implementation 'io.grpc:grpc-protobuf:1.44.1'
     implementation 'io.grpc:grpc-stub:1.44.1'
+    implementation "io.grpc:grpc-services:1.44.1"
+
     compileOnly 'org.apache.tomcat:annotations-api:6.0.53'
 }
 
