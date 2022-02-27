@@ -7,7 +7,6 @@ import io.grpc.stub.StreamObserver;
 
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 public class GreetingClient {
 

@@ -4,6 +4,9 @@ import com.proto.calculator.*;
 
 import io.grpc.stub.StreamObserver;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServiceImplBase {
 
     @Override
@@ -27,5 +30,35 @@ public class CalculatorServiceImpl extends CalculatorServiceGrpc.CalculatorServi
             } else ++divisor;
         }
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public StreamObserver<ComputeAverageRequest> computeAverage(StreamObserver<ComputeAverageResponse> responseObserver) {
+        return new StreamObserver<ComputeAverageRequest>() {
+            private final List<Integer> numbers = new ArrayList<>();
+
+            @Override
+            public void onNext(ComputeAverageRequest value) {
+                numbers.add(value.getNumber());
+            }
+
+            @Override
+            public void onError(Throwable t) {
+
+            }
+
+            @Override
+            public void onCompleted() {
+                if (numbers.isEmpty()) numbers.add(0);
+
+                @SuppressWarnings("OptionalGetWithoutIsPresent")
+                double average = numbers.stream().mapToInt(i -> i).average().getAsDouble();
+
+                responseObserver.onNext(
+                        ComputeAverageResponse.newBuilder().setAverage(average).build()
+                );
+                responseObserver.onCompleted();
+            }
+        };
     }
 }
